@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Selection Detail{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <div>
+        <h1>Selection Details</h1>
+        <p>From {{ selection.email }} for project "{{ selection.project.title }}"</p>
+    </div>
+    <div>
+        <a href="{{ url_for('admin.send_selection', selection_id=selection.id) }}" class="btn btn-primary" id="sendBtn" onclick="showLoading(this, '正在发送...')">Send Files</a>
+        <a href="{{ url_for('admin.send_selection', selection_id=selection.id, test_mode=1) }}" class="btn btn-warning" id="testSendBtn" onclick="showLoading(this, '测试发送中...')">Test Send</a>
+        <a href="{{ url_for('admin.view_selections', project_id=selection.project.id) }}" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>
+
+<div class="selection-info card" style="margin-bottom: 30px;">
+    <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+        <div>
+            <strong>Email:</strong> {{ selection.email }}
+        </div>
+        <div>
+            <strong>Submitted:</strong> {{ selection.submit_time.strftime('%b %d, %Y at %H:%M') }}
+        </div>
+        <div>
+            <strong>Selected Photos:</strong> {{ selection.selected_photos|length }}
+        </div>
+    </div>
+</div>
+
+<div class="gallery-section">
+    <h2>Selected Photos</h2>
+    
+    {% if selection.selected_photos %}
+        <div class="gallery">
+            {% for selected_photo in selection.selected_photos %}
+                <div class="photo-item">
+                    {% if selected_photo.photo.file_type == 'image' %}
+                        {% if selected_photo.photo.thumbnail_filename %}
+                            <img src="{{ url_for('static', filename='uploads/thumbnails/' + selected_photo.photo.thumbnail_filename) }}" alt="{{ selected_photo.photo.original_filename }}">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='uploads/' + selected_photo.photo.filename) }}" alt="{{ selected_photo.photo.original_filename }}">
+                        {% endif %}
+                    {% else %}
+                        <video src="{{ url_for('static', filename='uploads/' + selected_photo.photo.filename) }}" controls></video>
+                    {% endif %}
+                    <div class="photo-overlay">
+                        <span>{{ selected_photo.photo.original_filename }}</span>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card" style="text-align: center; padding: 40px;">
+            <h3>No Photos Selected</h3>
+            <p>This selection does not contain any photos.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 按钮点击后显示加载状态
+    function showLoading(button, loadingText) {
+        // 保存原始文本
+        button.setAttribute('data-original-text', button.innerHTML);
+        // 显示加载状态
+        button.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ${loadingText}`;
+        // 禁用按钮，防止重复点击
+        button.disabled = true;
+        // 添加点击效果的CSS类
+        button.classList.add('btn-loading');
+    }
+
+    // 页面加载完成后恢复按钮状态（如果用户通过浏览器后退按钮返回）
+    window.addEventListener('pageshow', function(event) {
+        // 检查是否是从缓存加载的页面
+        if (event.persisted) {
+            // 恢复所有按钮的状态
+            document.querySelectorAll('.btn-loading').forEach(function(btn) {
+                if (btn.hasAttribute('data-original-text')) {
+                    btn.innerHTML = btn.getAttribute('data-original-text');
+                    btn.disabled = false;
+                    btn.classList.remove('btn-loading');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %} 

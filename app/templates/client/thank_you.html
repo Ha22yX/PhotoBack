@@ -1,0 +1,358 @@
+{% extends "base.html" %}
+
+{% block title %}Thank You{% endblock %}
+
+{% block header %}
+<header class="header">
+    <div class="container">
+        <div class="navbar">
+            <div class="header-logo">
+                <img src="{{ config['SITE_URL'] }}/rosebeglogo" alt="Rosebeg Logo" style="height: 30px; margin-right: 10px; vertical-align: middle;">
+                {{ project.title }}
+            </div>
+        </div>
+    </div>
+</header>
+{% endblock %}
+
+{% block content %}
+<div class="client-view" style="text-align: center; padding: 60px 0;">
+    <div style="max-width: 600px; margin: 0 auto;">
+        <div style="font-size: 60px; margin-bottom: 30px;">✓</div>
+        <h1>Thank You!</h1>
+        <p style="margin-bottom: 30px; font-size: 1.2rem;">Your selection has been submitted successfully.</p>
+        
+        {% if selection and selection.delivery_method == 'email' %}
+        <p>We will send your selected photos to your email address shortly.</p>
+        
+        <div style="margin: 40px auto; padding: 20px; background: #fff4e5; border-left: 5px solid #ff9800; text-align: left; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            <h3 style="color: #e65100; margin-top: 0; font-size: 1.3rem;">⚠️ Important Email Notice</h3>
+            <p style="margin-bottom: 10px; font-size: 1.1rem; line-height: 1.5;">When you receive our email, <strong>please allow images to be displayed</strong> to view your selected photos.</p>
+            <p style="margin-bottom: 0; color: #555;">Most email clients block external images by default. Look for the "Display Images" or "Load Images" button in your email.</p>
+        </div>
+        {% endif %}
+        
+        {% if selection and selection.delivery_method == 'download' %}
+        <p>Your photo{% if selection.selected_photos|length > 1 %}s are{% else %} is{% endif %} ready to download!</p>
+        
+        <div style="margin: 40px auto; padding: 20px; background: #e3f2fd; border-left: 5px solid #2196f3; text-align: left; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            <h3 style="color: #0d47a1; margin-top: 0; font-size: 1.3rem;">💾 Download Information</h3>
+            <p style="margin-bottom: 10px; font-size: 1.1rem; line-height: 1.5;">Your download should start automatically. If not, please click the download button below.</p>
+            {% if selection.selected_photos|length > 1 %}
+            <p style="margin-bottom: 0; color: #555;">The ZIP file contains all your selected photos in full resolution.</p>
+            {% else %}
+            <p style="margin-bottom: 0; color: #555;">Your selected photo will be downloaded in full resolution.</p>
+            {% endif %}
+        </div>
+        
+        <div id="download-status" style="display: none; margin-top: 20px; padding: 10px 15px; background-color: #4caf50; color: white; border-radius: 4px; font-weight: 500;">
+            {% if selection.selected_photos|length == 1 %}
+            Photo download started!
+            {% else %}
+            Download started!
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        {% if selection and selection.delivery_method == 'link' %}
+        <p>Your shared link is ready!</p>
+        
+        <div style="margin: 40px auto; padding: 20px; background: #e8eaf6; border-left: 5px solid #3f51b5; text-align: left; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            <h3 style="color: #3f51b5; margin-top: 0; font-size: 1.3rem;">🔗 Share Link</h3>
+            <p style="margin-bottom: 15px; font-size: 1.1rem; line-height: 1.5;">Anyone with this link can view your selected photos:</p>
+            
+            <div style="background: #f5f5f5; padding: 15px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <input id="share-link" type="text" value="{{ session.get('share_link', '') }}" style="width: 100%; background: transparent; border: none; font-family: monospace; color: #333; outline: none; overflow: hidden;" readonly>
+                <button onclick="copyShareLink()" id="copy-btn" style="background: #3f51b5; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-left: 10px; white-space: nowrap;">Copy Link</button>
+            </div>
+            
+            <p style="margin-bottom: 0; color: #555;">This link will remain valid indefinitely. Keep it safe and only share with people you trust.</p>
+        </div>
+        {% endif %}
+        
+        {% if selection and selection.delivery_method == 'google_drive' %}
+        <p>Your Google Drive link is ready!</p>
+        
+        <div id="drive-links-container" style="margin: 40px auto; padding: 20px; background: #e8f5e9; border-left: 5px solid #4caf50; text-align: left; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+            <h3 style="color: #2e7d32; margin-top: 0; font-size: 1.3rem;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 8px;">
+                    <path d="M19.7 8.3l-4-7H8.3l4 7h7.4zM8.5 8.3L4.5 1.3H3.3c-.8 0-1.6.4-2 1.1-.5.7-.5 1.6-.2 2.4L5.3 12l3.2-3.7zM16 10H6.4l-4.5 8c-.4.7-.4 1.6 0 2.3.4.7 1.2 1.1 2 1.1h16.4c.8 0 1.6-.4 2-1.1.4-.7.4-1.6 0-2.3L18 10h-2z"/>
+                </svg>
+                <span id="collection-title">Google Drive Collection</span>
+            </h3>
+            <p style="margin-bottom: 5px; font-size: 1.1rem; line-height: 1.5;">Your photos are now available in a Google Drive collection.</p>
+            <p style="margin-bottom: 15px; color: #2e7d32; font-weight: 500;" id="photos-count">Contains your selected photos</p>
+            
+            <!-- 加载指示器 -->
+            <div id="loading-indicator" style="display: none; text-align: center; margin-bottom: 15px; padding: 10px; background: rgba(0,0,0,0.05); border-radius: 4px;">
+                <div class="spinner" style="display: inline-block; width: 24px; height: 24px; border: 3px solid rgba(76, 175, 80, 0.3); border-radius: 50%; border-top-color: #4caf50; animation: spin 1s linear infinite;"></div>
+                <span style="margin-left: 10px; color: #555; vertical-align: middle;">Processing...</span>
+            </div>
+            
+            <div style="background: #f5f5f5; padding: 15px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <input id="drive-link" type="text" value="{{ session.get('share_link', '') }}" style="width: 100%; background: transparent; border: none; font-family: monospace; color: #333; outline: none; overflow: hidden;" readonly>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="copyDriveLink()" id="copy-drive-btn" style="background: #4caf50; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; white-space: nowrap; font-weight: 500; display: flex; align-items: center; transition: all 0.2s ease;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 5px;">
+                            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                        </svg>
+                        Copy
+                    </button>
+                    <a href="{{ session.get('share_link', '#') }}" target="_blank" id="open-drive-btn" style="background: #1565c0; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; text-decoration: none; display: flex; align-items: center; white-space: nowrap; font-weight: 500; transition: all 0.2s ease;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 5px;">
+                            <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
+                        </svg>
+                        Open
+                    </a>
+                </div>
+            </div>
+            
+            <!-- 多个文件链接容器，由JavaScript填充 -->
+            <div id="drive-links-list" style="display: none;"></div>
+            
+            <p style="margin-bottom: 0; color: #555;">Click the link to access your photos in Google Drive. You can view, download, or share them further from there. <strong>No file copying involved</strong> - just smart shortcuts!</p>
+        </div>
+        {% endif %}
+        
+        <div style="margin-top: 50px;">
+            <a href="{{ url_for('client.view_project', access_link=project.access_link) }}" class="btn btn-secondary">Back to Gallery</a>
+            
+            {% if selection %}
+                {% if selection.delivery_method == 'download' %}
+                    {% if session.get('download_file') %}
+                    <a href="{{ session.get('download_file') }}" class="btn btn-primary" id="download-btn" style="margin-left: 10px;">
+                        {% if selection.selected_photos|length == 1 %}
+                        Download this Photo
+                        {% else %}
+                        Download Photos
+                        {% endif %}
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('client.download_photos', selection_id=selection.id) }}" class="btn btn-primary" style="margin-left: 10px;">
+                        {% if selection.selected_photos|length == 1 %}
+                        Download this Photo
+                        {% else %}
+                        Download Photos
+                        {% endif %}
+                    </a>
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if selection and selection.delivery_method == 'download' and session.get('download_file') %}
+<script>
+    // 页面加载完成后自动下载
+    window.addEventListener('load', function() {
+        setTimeout(function() {
+            // 显示下载状态消息
+            document.getElementById('download-status').style.display = 'inline-block';
+            
+            // 触发下载按钮点击
+            document.getElementById('download-btn').click();
+            
+            // 3秒后隐藏下载状态消息
+            setTimeout(function() {
+                document.getElementById('download-status').style.display = 'none';
+            }, 3000);
+        }, 1000); // 延迟1秒自动下载，让用户有时间看到页面
+    });
+</script>
+{% endif %}
+
+{% if selection and selection.delivery_method == 'link' %}
+<script>
+    function copyShareLink() {
+        var linkInput = document.getElementById('share-link');
+        var copyBtn = document.getElementById('copy-btn');
+        
+        // 选择文本
+        linkInput.select();
+        linkInput.setSelectionRange(0, 99999); // 适用于移动设备
+        
+        // 复制文本
+        navigator.clipboard.writeText(linkInput.value)
+            .then(function() {
+                // 成功复制
+                copyBtn.textContent = 'Copied!';
+                copyBtn.style.background = '#4CAF50';
+                
+                // 1.5秒后恢复原样
+                setTimeout(function() {
+                    copyBtn.textContent = 'Copy Link';
+                    copyBtn.style.background = '#3f51b5';
+                }, 1500);
+            })
+            .catch(function(err) {
+                // 如果剪贴板API不可用，尝试文档命令
+                try {
+                    var successful = document.execCommand('copy');
+                    if (successful) {
+                        copyBtn.textContent = 'Copied!';
+                        copyBtn.style.background = '#4CAF50';
+                        
+                        setTimeout(function() {
+                            copyBtn.textContent = 'Copy Link';
+                            copyBtn.style.background = '#3f51b5';
+                        }, 1500);
+                    } else {
+                        console.error('无法复制链接');
+                    }
+                } catch (err) {
+                    console.error('复制失败:', err);
+                }
+            });
+    }
+</script>
+{% endif %}
+
+{% if selection and selection.delivery_method == 'google_drive' %}
+<style>
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .btn-disabled {
+        background-color: #9e9e9e !important;
+        cursor: not-allowed !important;
+    }
+    
+    #copy-drive-btn:hover, #open-drive-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+    
+    #copy-drive-btn:active, #open-drive-btn:active {
+        transform: translateY(0);
+    }
+</style>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 从会话中获取分享链接数据
+        const driveLinksEl = document.getElementById('drive-links-container');
+        if (!driveLinksEl) return;
+        
+        // 获取打开链接按钮
+        const openLinkBtn = document.getElementById('open-drive-btn');
+        const driveLink = document.getElementById('drive-link').value;
+        const loadingIndicator = document.getElementById('loading-indicator');
+        
+        // 检查链接是否有效
+        if (!driveLink || driveLink === '#' || driveLink === '') {
+            // 链接无效，禁用打开链接按钮
+            if (openLinkBtn) {
+                openLinkBtn.classList.add('btn-disabled');
+                openLinkBtn.style.background = '#9e9e9e';
+                openLinkBtn.style.cursor = 'not-allowed';
+                openLinkBtn.setAttribute('title', '链接暂不可用');
+                openLinkBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    alert('链接暂不可用，请稍后再试');
+                });
+            }
+        } else {
+            // 链接有效，添加点击事件
+            openLinkBtn.addEventListener('click', function() {
+                // 显示加载指示器
+                loadingIndicator.style.display = 'block';
+                
+                // 2秒后隐藏加载指示器（在新窗口打开链接后台可能仍在加载）
+                setTimeout(function() {
+                    loadingIndicator.style.display = 'none';
+                }, 2000);
+            });
+        }
+        
+        // 尝试从selection.share_key解析JSON数据
+        try {
+            const shareData = JSON.parse('{{ selection.share_key|safe }}');
+            
+            // 更新标题和描述
+            if (shareData.collection_name) {
+                const titleEl = document.getElementById('collection-title');
+                if (titleEl) {
+                    titleEl.textContent = shareData.collection_name;
+                }
+                
+                const countEl = document.getElementById('photos-count');
+                if (countEl && shareData.shortcuts_count) {
+                    const photoText = shareData.shortcuts_count > 1 ? 'photos' : 'photo';
+                    countEl.textContent = `Contains ${shareData.shortcuts_count} ${photoText}`;
+                }
+            }
+            
+            // 不需要显示单独的链接列表，因为我们使用的是单一合集链接
+            document.getElementById('drive-links-list').style.display = 'none';
+        } catch (e) {
+            console.error('无法解析合集数据:', e);
+        }
+    });
+
+    function copyDriveLink() {
+        var linkInput = document.getElementById('drive-link');
+        var copyBtn = document.getElementById('copy-drive-btn');
+        var loadingIndicator = document.getElementById('loading-indicator');
+        
+        // 显示加载指示器
+        loadingIndicator.style.display = 'block';
+        
+        // 禁用按钮防止重复点击
+        copyBtn.disabled = true;
+        
+        // 选择文本
+        linkInput.select();
+        linkInput.setSelectionRange(0, 99999); // 适用于移动设备
+        
+        // 复制文本
+        navigator.clipboard.writeText(linkInput.value)
+            .then(function() {
+                // 隐藏加载指示器
+                loadingIndicator.style.display = 'none';
+                
+                // 启用按钮
+                copyBtn.disabled = false;
+                
+                // 成功复制
+                copyBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 5px;"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>Copied!';
+                copyBtn.style.background = '#2e7d32';
+                
+                // 1.5秒后恢复原样
+                setTimeout(function() {
+                    copyBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 5px;"><path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>Copy';
+                    copyBtn.style.background = '#4caf50';
+                }, 1500);
+            })
+            .catch(function(err) {
+                // 隐藏加载指示器
+                loadingIndicator.style.display = 'none';
+                
+                // 启用按钮
+                copyBtn.disabled = false;
+                
+                // 如果剪贴板API不可用，尝试文档命令
+                try {
+                    var successful = document.execCommand('copy');
+                    if (successful) {
+                        copyBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 5px;"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>Copied!';
+                        copyBtn.style.background = '#2e7d32';
+                        
+                        setTimeout(function() {
+                            copyBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 5px;"><path d="M16 1H4C2.9 1 2 1.9 2 3v14h2V3h12V1zm3 4H8C6.9 5 6 5.9 6 7v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>Copy';
+                            copyBtn.style.background = '#4caf50';
+                        }, 1500);
+                    } else {
+                        console.error('无法复制链接');
+                    }
+                } catch (err) {
+                    console.error('复制失败:', err);
+                }
+            });
+    }
+</script>
+{% endif %}
+{% endblock %} 

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Selections - {{ project.title }}{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+    <div>
+        <h1>Selections for {{ project.title }}</h1>
+        <p>Client selections for this project</p>
+    </div>
+    <div>
+        <a href="{{ url_for('admin.project', project_id=project.id) }}" class="btn btn-secondary">Back to Project</a>
+    </div>
+</div>
+
+<div class="selections-list">
+    {% if selections %}
+        {% for selection in selections %}
+        <div class="selection-item">
+            <div class="selection-info">
+                <div class="selection-email">{{ selection.email }}</div>
+                <div class="selection-meta">
+                    <span>{{ selection.selected_photos|length }} photos selected</span>
+                    <span>Submitted: {{ selection.submit_time.strftime('%b %d, %Y at %H:%M') }}</span>
+                </div>
+            </div>
+            <div>
+                <a href="{{ url_for('admin.view_selection', selection_id=selection.id) }}" class="btn">View Details</a>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="card" style="text-align: center; padding: 40px;">
+            <h3>No Selections Yet</h3>
+            <p>Clients haven't made any selections for this project yet.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 

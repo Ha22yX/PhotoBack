@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}System Cleanup{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>System Cleanup</h1>
+    <p>This page shows files that exist in the storage directory but are not referenced in the database.</p>
+</div>
+
+<div class="card" style="margin-bottom: 30px;">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>Orphaned Files</h2>
+        <div>
+            <strong>Total:</strong> {{ total_files }} files ({{ total_size }})
+        </div>
+    </div>
+    
+    {% if orphaned_files %}
+        <form method="post" action="{{ url_for('admin.delete_orphaned_files') }}" id="cleanup-form">
+            <!-- CSRF protection is disabled for this endpoint -->
+            <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <button type="button" class="btn btn-sm" onclick="selectAll()">Select All</button>
+                    <button type="button" class="btn btn-sm" onclick="deselectAll()">Deselect All</button>
+                </div>
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete all selected files? This cannot be undone.')">
+                    Delete Selected Files
+                </button>
+            </div>
+            
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th style="width: 5%;">Select</th>
+                        <th style="width: 10%;">Type</th>
+                        <th style="width: 10%;">Size</th>
+                        <th style="width: 75%;">Path</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for file in orphaned_files %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="selected_files" value="{{ file.path }}" class="file-checkbox">
+                            </td>
+                            <td>
+                                {% if file.type == 'file' %}
+                                    <span class="badge badge-primary">Original</span>
+                                {% else %}
+                                    <span class="badge badge-secondary">Thumbnail</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ file.size_formatted }}</td>
+                            <td>{{ file.path }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </form>
+    {% else %}
+        <div style="padding: 30px; text-align: center;">
+            <h3>No orphaned files found</h3>
+            <p>All files in your storage directory are properly referenced in the database.</p>
+        </div>
+    {% endif %}
+</div>
+
+<a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+
+<style>
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .table th, .table td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid var(--color-gray);
+    }
+    .table th {
+        background-color: var(--color-darker);
+        color: var(--color-light-gray);
+        font-weight: 600;
+    }
+    .table tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+    .badge {
+        display: inline-block;
+        padding: 0.25em 0.6em;
+        font-size: 0.75em;
+        font-weight: 700;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: 0.25rem;
+    }
+    .badge-primary {
+        color: #fff;
+        background-color: #007bff;
+    }
+    .badge-secondary {
+        color: #fff;
+        background-color: #6c757d;
+    }
+</style>
+
+<script>
+    function selectAll() {
+        const checkboxes = document.querySelectorAll('.file-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = true;
+        });
+    }
+    
+    function deselectAll() {
+        const checkboxes = document.querySelectorAll('.file-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+    }
+</script>
+{% endblock %} 

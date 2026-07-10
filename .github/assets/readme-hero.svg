@@ -1,0 +1,43 @@
+<svg width="1120" height="420" viewBox="0 0 1120 420" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">PhotoBack project overview</title>
+  <desc id="desc">A simplified workflow diagram for a photography delivery platform.</desc>
+  <rect width="1120" height="420" rx="34" fill="#F4F7F2"/>
+  <path d="M0 310C138 258 238 305 374 276C550 239 642 128 819 158C944 179 1036 247 1120 202V420H0V310Z" fill="#E0ECE5"/>
+  <rect x="78" y="58" width="964" height="296" rx="26" fill="#FFFFFF" stroke="#D9E1DB"/>
+  <rect x="104" y="86" width="240" height="240" rx="20" fill="#10231D"/>
+  <rect x="132" y="118" width="54" height="54" rx="12" fill="#EAF5EF"/>
+  <path d="M145 137H173V154H145V137Z" stroke="#2B755D" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M145 138L159 148L173 138" stroke="#2B755D" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="132" y="206" fill="#FFFFFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="29" font-weight="800">PhotoBack</text>
+  <text x="132" y="236" fill="#CDE0D7" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="15" font-weight="600">Private gallery delivery</text>
+  <rect x="132" y="266" width="154" height="42" rx="11" fill="#2B755D"/>
+  <text x="159" y="292" fill="#FFFFFF" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="14" font-weight="800">Admin Studio</text>
+  <rect x="388" y="98" width="170" height="80" rx="16" fill="#FFFBF8" stroke="#EBCBC0"/>
+  <circle cx="426" cy="138" r="20" fill="#FBE7DF"/>
+  <path d="M426 125L439 150H413L426 125Z" stroke="#DF715A" stroke-width="3" stroke-linejoin="round"/>
+  <text x="458" y="130" fill="#6B7B74" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">Create</text>
+  <text x="458" y="154" fill="#0C1512" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="24" font-weight="900">Project</text>
+  <rect x="598" y="98" width="170" height="80" rx="16" fill="#FBFAFF" stroke="#D8D7F5"/>
+  <circle cx="636" cy="138" r="20" fill="#ECEBFF"/>
+  <path d="M636 124L641 134L653 136L644 144L646 156L636 150L626 156L628 144L619 136L631 134L636 124Z" stroke="#7371C7" stroke-width="3" stroke-linejoin="round"/>
+  <text x="668" y="130" fill="#6B7B74" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">Unique</text>
+  <text x="668" y="154" fill="#0C1512" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="24" font-weight="900">Link</text>
+  <rect x="808" y="98" width="170" height="80" rx="16" fill="#F8FCFA" stroke="#D9E5DF"/>
+  <circle cx="846" cy="138" r="20" fill="#DFF0E9"/>
+  <path d="M835 130H857V149H835V130Z" stroke="#2B755D" stroke-width="3"/>
+  <path d="M839 136H853" stroke="#2B755D" stroke-width="3" stroke-linecap="round"/>
+  <text x="878" y="130" fill="#6B7B74" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">Private</text>
+  <text x="878" y="154" fill="#0C1512" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="24" font-weight="900">Gallery</text>
+  <path d="M558 212C581 234 618 236 644 220" stroke="#6F73C8" stroke-width="3" stroke-dasharray="8 10" stroke-linecap="round"/>
+  <path d="M768 220C799 244 845 239 866 213" stroke="#6F73C8" stroke-width="3" stroke-dasharray="8 10" stroke-linecap="round"/>
+  <rect x="388" y="218" width="330" height="86" rx="18" fill="#FBFEFC" stroke="#DDE7E0"/>
+  <circle cx="418" cy="261" r="5" fill="#2B755D"/>
+  <text x="438" y="248" fill="#0C1512" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="17" font-weight="850">Visitor selects photos</text>
+  <text x="438" y="274" fill="#4A5A54" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="600">Browse, preview, choose delivery method.</text>
+  <path d="M718 261H785" stroke="#2B755D" stroke-width="4" stroke-linecap="round"/>
+  <path d="M773 249L786 261L773 273" stroke="#2B755D" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="808" y="218" width="170" height="86" rx="18" fill="#FBFEFC" stroke="#DDE7E0"/>
+  <text x="831" y="247" fill="#2B755D" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="900">DELIVER</text>
+  <text x="831" y="273" fill="#0C1512" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="17" font-weight="850">Download / Email</text>
+  <text x="831" y="294" fill="#0C1512" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="17" font-weight="850">Drive handoff</text>
+</svg>

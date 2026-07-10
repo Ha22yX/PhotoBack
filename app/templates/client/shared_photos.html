@@ -1,0 +1,565 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block header %}
+<header class="header">
+    <div class="container">
+        <div class="navbar">
+            <div class="header-logo">
+                <img src="{{ config['SITE_URL'] }}/rosebeglogo" alt="Rosebeg Logo" style="height: 30px; margin-right: 10px; vertical-align: middle;">
+                Shared Photos
+            </div>
+        </div>
+    </div>
+</header>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 添加lightbox样式 */
+    .lightbox {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.9);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .lightbox.show {
+        opacity: 1;
+        display: block;
+    }
+
+    .lightbox-content {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+    }
+
+    .lightbox-img {
+        max-width: 90%;
+        max-height: 80%;
+        object-fit: contain;
+        transform: scale(0.95);
+        opacity: 0;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    .lightbox.show .lightbox-img {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    .lightbox-video {
+        max-width: 90%;
+        max-height: 80%;
+        object-fit: contain;
+        transform: scale(0.95);
+        opacity: 0;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    .lightbox.show .lightbox-video {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    .lightbox-close {
+        position: absolute;
+        top: 20px;
+        right: 30px;
+        color: #f1f1f1;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 1002;
+        opacity: 0.8;
+        transition: opacity 0.2s ease;
+    }
+
+    .lightbox-close:hover, .lightbox-close:focus {
+        opacity: 1;
+    }
+
+    .lightbox-counter {
+        color: white;
+        position: absolute;
+        top: 20px;
+        left: 30px;
+        font-size: 16px;
+        z-index: 1002;
+    }
+
+    .lightbox-nav {
+        display: flex;
+        justify-content: space-between;
+        width: 90%;
+        position: absolute;
+        bottom: 20px;
+        z-index: 1001;
+    }
+
+    .lightbox-nav button {
+        background: rgba(100, 100, 100, 0.5);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        font-size: 16px;
+    }
+
+    .lightbox-nav button:hover, .lightbox-nav button:focus {
+        background: rgba(150, 150, 150, 0.7);
+    }
+
+    /* 视频加载指示器样式 */
+    .loading-indicator {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1005;
+    }
+
+    .spinner {
+        margin: 0 auto;
+        width: 70px;
+        text-align: center;
+    }
+
+    .spinner > div {
+        width: 18px;
+        height: 18px;
+        background-color: #fff;
+        border-radius: 100%;
+        display: inline-block;
+        animation: sk-bouncedelay 1.4s infinite ease-in-out both;
+    }
+
+    .spinner .bounce1 {
+        animation-delay: -0.32s;
+    }
+
+    .spinner .bounce2 {
+        animation-delay: -0.16s;
+    }
+
+    @keyframes sk-bouncedelay {
+        0%, 80%, 100% { 
+            transform: scale(0);
+        } 
+        40% { 
+            transform: scale(1.0);
+        }
+    }
+
+    /* 视频播放按钮样式 */
+    .video-play-button {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        padding: 15px 25px;
+        border-radius: 8px;
+        cursor: pointer;
+        z-index: 1003;
+        font-weight: 500;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        transition: all 0.2s ease;
+    }
+
+    .video-play-button:hover {
+        background: rgba(0, 0, 0, 0.8);
+        border-color: rgba(255, 255, 255, 0.4);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="client-view">
+    <div class="page-header">
+        <h1>Shared Photos from {{ project.title }}</h1>
+        <p>These photos were shared with you</p>
+    </div>
+
+    {% if photos %}
+        <div class="gallery">
+            {% for photo in photos %}
+                <div class="photo-item">
+                    {% if photo.file_type == 'image' %}
+                        {% if photo.thumbnail_filename %}
+                            <img src="{{ url_for('static', filename='uploads/thumbnails/' + photo.thumbnail_filename) }}" 
+                                 alt="{{ photo.original_filename }}"
+                                 loading="lazy"
+                                 onclick="viewOriginal(event, {{ loop.index0 }})">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='uploads/' + photo.filename) }}" 
+                                 alt="{{ photo.original_filename }}"
+                                 loading="lazy"
+                                 onclick="viewOriginal(event, {{ loop.index0 }})">
+                        {% endif %}
+                    {% else %}
+                        <div class="video-indicator">Video</div>
+                        {% if photo.thumbnail_filename %}
+                            <!-- Video with thumbnail -->
+                            <img src="{{ url_for('static', filename='uploads/thumbnails/' + photo.thumbnail_filename) }}" 
+                                 alt="{{ photo.original_filename }}"
+                                 loading="lazy"
+                                 data-video-src="{{ url_for('static', filename='uploads/' + photo.filename) }}"
+                                 data-type="video"
+                                 data-media-id="{{ photo.id }}"
+                                 onclick="viewOriginal(event, {{ loop.index0 }})"
+                                 onerror="this.onerror=null; this.parentNode.innerHTML='<div class=\'video-thumbnail-placeholder\' data-video-src=\'{{ url_for('static', filename='uploads/' + photo.filename) }}\' data-type=\'video\' data-media-id=\'{{ photo.id }}\'><i class=\'fas fa-video\'></i></div>';">
+                        {% else %}
+                            <!-- Video without thumbnail, show placeholder -->
+                            <div class="video-thumbnail-placeholder" 
+                                 data-video-src="{{ url_for('static', filename='uploads/' + photo.filename) }}"
+                                 data-media-id="{{ photo.id }}"
+                                 data-type="video"
+                                 onclick="viewOriginal(event, {{ loop.index0 }})">
+                                <i class="fas fa-video"></i>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                    <button type="button" class="view-original" aria-label="View full size" onclick="viewOriginal(event, {{ loop.index0 }})">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="margin-right: 4px; vertical-align: middle;">
+                            <path d="M15 3h6v6h-2V5h-4V3zM3 3h6v2H5v4H3V3zM21 21h-6v-2h4v-4h2v6zM3 21h6v-2H5v-4H3v6z" fill="currentColor"/>
+                        </svg>
+                        View Full
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <a href="{{ url_for('client.download_shared_photos', access_link=project.access_link, share_key=selection.share_key) }}" class="btn btn-primary">
+                Download All Photos
+            </a>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <h3>No Photos Available</h3>
+            <p>This shared collection doesn't have any photos.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Image Viewer -->
+<div id="lightbox" class="lightbox">
+    <div class="lightbox-content">
+        <span class="lightbox-close" aria-label="Close lightbox">&times;</span>
+        <div class="lightbox-counter"><span id="current-index">1</span> / <span id="total-count">{{ photos|length }}</span></div>
+        <img id="lightbox-img" class="lightbox-img" alt="Full size image" style="display:none;">
+        <video id="lightbox-video" class="lightbox-video" controls preload="auto" style="display:none;" playsinline></video>
+        <div class="loading-indicator" id="video-loading" style="display:none;">
+            <div class="spinner">
+                <div class="bounce1"></div>
+                <div class="bounce2"></div>
+                <div class="bounce3"></div>
+            </div>
+        </div>
+        <div class="lightbox-nav">
+            <button class="lightbox-prev" aria-label="Previous image">Previous</button>
+            <button class="lightbox-next" aria-label="Next image">Next</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Media data storage
+    var mediaData = [];
+    
+    // Collect media items data
+    document.querySelectorAll('.photo-item').forEach(function(item, index) {
+        var imgElement = item.querySelector('img');
+        var videoPlaceholder = item.querySelector('.video-thumbnail-placeholder');
+        
+        var mediaType = 'image';
+        var thumbnailSrc = '';
+        var originalSrc = '';
+        var mediaId = '';
+        
+        if (imgElement && imgElement.dataset.type === 'video') {
+            mediaType = 'video';
+            thumbnailSrc = imgElement.src;
+            originalSrc = imgElement.dataset.videoSrc;
+            mediaId = imgElement.dataset.mediaId || '';
+        } else if (videoPlaceholder) {
+            mediaType = 'video';
+            thumbnailSrc = '';
+            originalSrc = videoPlaceholder.dataset.videoSrc;
+            mediaId = videoPlaceholder.dataset.mediaId || '';
+        } else if (imgElement) {
+            mediaType = 'image';
+            thumbnailSrc = imgElement.src;
+            
+            // Get original URL
+            var thumbnailPath = imgElement.src;
+            if (thumbnailPath.includes('/thumbnails/')) {
+                var pathParts = thumbnailPath.split('/thumbnails/');
+                var fileName = pathParts[1];
+                var originalFileName = fileName.replace('_thumb', '');
+                originalSrc = pathParts[0] + '/' + originalFileName;
+            } else {
+                originalSrc = thumbnailPath;
+            }
+        }
+        
+        mediaData.push({
+            type: mediaType,
+            thumbnail: thumbnailSrc,
+            original: originalSrc,
+            index: index,
+            id: mediaId
+        });
+    });
+    
+    // Current state variables
+    var currentMediaIndex = 0;
+    
+    // Initialize lightbox functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelector('.lightbox-close').addEventListener('click', closeLightbox);
+        
+        document.querySelector('.lightbox-prev').addEventListener('click', function() {
+            changeMedia(-1);
+        });
+        
+        document.querySelector('.lightbox-next').addEventListener('click', function() {
+            changeMedia(1);
+        });
+        
+        document.getElementById('lightbox').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeLightbox();
+            }
+        });
+        
+        document.addEventListener('keydown', function(e) {
+            if (document.getElementById('lightbox').classList.contains('show')) {
+                if (e.key === 'ArrowLeft') {
+                    changeMedia(-1);
+                } else if (e.key === 'ArrowRight') {
+                    changeMedia(1);
+                } else if (e.key === 'Escape') {
+                    closeLightbox();
+                }
+            }
+        });
+    });
+    
+    // Open lightbox
+    function viewOriginal(event, index) {
+        event.stopPropagation();
+        event.preventDefault();
+        openLightbox(index);
+    }
+    
+    // Open lightbox with media at given index
+    function openLightbox(index) {
+        var lightbox = document.getElementById('lightbox');
+        var currentIndexEl = document.getElementById('current-index');
+        var totalCountEl = document.getElementById('total-count');
+        
+        stopAllVideos();
+        
+        currentMediaIndex = index;
+        currentIndexEl.textContent = currentMediaIndex + 1;
+        totalCountEl.textContent = mediaData.length;
+        
+        updateLightboxMedia();
+        
+        lightbox.classList.add('show');
+        document.body.style.overflow = 'hidden';
+        
+        // 延迟一下再显示媒体以确保动画效果正常
+        setTimeout(function() {
+            var media = document.getElementById(mediaData[currentMediaIndex].type === 'image' ? 'lightbox-img' : 'lightbox-video');
+            if (media) {
+                media.style.opacity = 1;
+            }
+        }, 50);
+    }
+    
+    // Update lightbox content based on current index
+    function updateLightboxMedia() {
+        if (currentMediaIndex < 0 || currentMediaIndex >= mediaData.length) return;
+        
+        var media = mediaData[currentMediaIndex];
+        var lightboxImg = document.getElementById('lightbox-img');
+        var lightboxVideo = document.getElementById('lightbox-video');
+        var loadingIndicator = document.getElementById('video-loading');
+        
+        // 重置所有媒体元素
+        lightboxImg.style.display = 'none';
+        lightboxImg.style.opacity = 0;
+        lightboxVideo.style.display = 'none';
+        lightboxVideo.style.opacity = 0;
+        loadingIndicator.style.display = 'none';
+        
+        if (lightboxVideo.paused === false) {
+            lightboxVideo.pause();
+        }
+        
+        // 移除任何可能存在的播放按钮
+        var existingPlayButton = document.querySelector('.video-play-button');
+        if (existingPlayButton && existingPlayButton.parentNode) {
+            existingPlayButton.parentNode.removeChild(existingPlayButton);
+        }
+        
+        if (media.type === 'image') {
+            // 处理图片
+            lightboxImg.src = media.original;
+            lightboxImg.style.display = 'block';
+        } else {
+            // 处理视频
+            lightboxVideo.onloadeddata = null;
+            lightboxVideo.onwaiting = null;
+            lightboxVideo.onplaying = null;
+            lightboxVideo.onerror = null;
+            
+            // 显示加载指示器
+            loadingIndicator.style.display = 'block';
+            
+            // 设置视频源
+            lightboxVideo.src = media.original;
+            lightboxVideo.style.display = 'block';
+            
+            // 视频缓冲时显示加载动画
+            lightboxVideo.onwaiting = function() {
+                loadingIndicator.style.display = 'block';
+            };
+            
+            // 视频开始播放时隐藏加载动画
+            lightboxVideo.onplaying = function() {
+                loadingIndicator.style.display = 'none';
+            };
+            
+            // 视频加载完成时隐藏加载动画
+            lightboxVideo.onloadeddata = function() {
+                loadingIndicator.style.display = 'none';
+            };
+            
+            // 视频加载出错时隐藏加载动画
+            lightboxVideo.onerror = function() {
+                loadingIndicator.style.display = 'none';
+            };
+            
+            lightboxVideo.load();
+            
+            // 尝试自动播放视频
+            var playPromise = lightboxVideo.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(function(error) {
+                    // 自动播放失败时显示播放按钮
+                    var playButton = document.createElement('div');
+                    playButton.className = 'video-play-button';
+                    playButton.textContent = 'Click to Play';
+                    playButton.onclick = function() {
+                        lightboxVideo.play();
+                        this.style.display = 'none';
+                    };
+                    document.querySelector('.lightbox-content').appendChild(playButton);
+                });
+            }
+        }
+    }
+    
+    // Close lightbox
+    function closeLightbox() {
+        var lightbox = document.getElementById('lightbox');
+        var lightboxVideo = document.getElementById('lightbox-video');
+        
+        // 停止视频播放并释放资源
+        if (lightboxVideo) {
+            lightboxVideo.onerror = null;
+            
+            try {
+                lightboxVideo.pause();
+                lightboxVideo.removeAttribute('src');
+                lightboxVideo.load();
+            } catch (e) {}
+        }
+        
+        // 移除播放按钮
+        var playButton = document.querySelector('.video-play-button');
+        if (playButton && playButton.parentNode) {
+            playButton.parentNode.removeChild(playButton);
+        }
+        
+        // 隐藏lightbox
+        lightbox.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+    
+    // Change to next/previous media
+    function changeMedia(direction) {
+        var newIndex = (currentMediaIndex + direction + mediaData.length) % mediaData.length;
+        currentMediaIndex = newIndex;
+        
+        var currentIndexEl = document.getElementById('current-index');
+        currentIndexEl.textContent = currentMediaIndex + 1;
+        
+        var lightboxVideo = document.getElementById('lightbox-video');
+        var lightboxImg = document.getElementById('lightbox-img');
+        
+        // 重置媒体元素的不透明度以便动画
+        lightboxVideo.style.opacity = 0;
+        lightboxImg.style.opacity = 0;
+        
+        // 停止视频播放并释放资源
+        if (lightboxVideo) {
+            lightboxVideo.onerror = null;
+            
+            try {
+                lightboxVideo.pause();
+                lightboxVideo.removeAttribute('src');
+                lightboxVideo.load();
+            } catch (e) {}
+        }
+        
+        // 移除播放按钮
+        var playButton = document.querySelector('.video-play-button');
+        if (playButton && playButton.parentNode) {
+            playButton.parentNode.removeChild(playButton);
+        }
+        
+        // 更新媒体内容
+        updateLightboxMedia();
+        
+        // 延迟一下再显示媒体以确保动画效果正常
+        setTimeout(function() {
+            var media = document.getElementById(mediaData[currentMediaIndex].type === 'image' ? 'lightbox-img' : 'lightbox-video');
+            if (media) {
+                media.style.opacity = 1;
+            }
+        }, 50);
+    }
+    
+    // Stop all videos
+    function stopAllVideos() {
+        var videos = document.querySelectorAll('video');
+        videos.forEach(function(video) {
+            if (video && typeof video.pause === 'function') {
+                video.pause();
+            }
+        });
+    }
+</script>
+{% endblock %} 

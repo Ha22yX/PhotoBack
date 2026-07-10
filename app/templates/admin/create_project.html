@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Create New Project{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Create New Project</h1>
+</div>
+
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <form method="post">
+        {{ form.hidden_tag() }}
+        
+        <div class="form-group">
+            {{ form.title.label }}
+            {{ form.title(class="form-control", placeholder="Enter project title") }}
+            {% for error in form.title.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
+        </div>
+        
+        <div class="form-group">
+            {{ form.description.label }}
+            {{ form.description(class="form-control", rows=4, placeholder="Enter project description") }}
+            {% for error in form.description.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
+        </div>
+        
+        <div class="form-group">
+            {{ form.status.label }}
+            {{ form.status(class="form-control") }}
+            {% for error in form.status.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
+        </div>
+        
+        <div class="form-group">
+            {{ form.deadline.label }}
+            {{ form.deadline(class="form-control", type="date") }}
+            {% for error in form.deadline.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.client_name.label }}
+            {{ form.client_name(class="form-control", placeholder="Enter client name") }}
+            {% for error in form.client_name.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
+        </div>
+        
+        <div class="form-group">
+            {{ form.client_email.label }}
+            {{ form.client_email(class="form-control", placeholder="Enter client email") }}
+            {% for error in form.client_email.errors %}
+            <span class="error">{{ error }}</span>
+            {% endfor %}
+        </div>
+        
+        <div class="form-group">
+            {{ form.submit(class="btn btn-primary") }}
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %} 

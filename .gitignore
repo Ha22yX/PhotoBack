@@ -1,0 +1,44 @@
+# Environment and local configuration
+.env
+.env.*
+!.env.example
+instance/
+config.py
+
+# Runtime media and generated files
+app/static/uploads/*
+!app/static/uploads/.gitkeep
+!app/static/uploads/thumbnails/
+app/static/uploads/thumbnails/*
+!app/static/uploads/thumbnails/.gitkeep
+*.sqlite
+*.sqlite3
+*.db
+*.log
+*.pid
+email_sent_record*.txt
+selection_email_debug*.txt
+
+# Credentials and local service tokens
+token.json
+google_token.json
+app/admin/token.json
+Example/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+env/
+
+# Editor, OS, and local history
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.specstory/

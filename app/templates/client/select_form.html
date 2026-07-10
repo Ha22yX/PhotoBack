@@ -1,0 +1,1064 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Selection{% endblock %}
+
+{% block header %}
+<header class="header">
+    <div class="container">
+        <div class="navbar">
+            <div class="header-logo">
+                <img src="{{ config['SITE_URL'] }}/rosebeglogo" alt="Rosebeg Logo" style="height: 30px; margin-right: 10px; vertical-align: middle;">
+                {{ project.title }}
+            </div>
+        </div>
+    </div>
+</header>
+{% endblock %}
+
+{% block content %}
+<div class="client-view">
+    <div class="page-header">
+        <div class="back-button-container">
+            <a href="{{ url_for('client.view_project', access_link=project.access_link) }}" class="back-button">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="margin-right: 8px;">
+                    <path d="M20 11H7.83L13.42 5.41L12 4L4 12L12 20L13.41 18.59L7.83 13H20V11Z" fill="currentColor"/>
+                </svg>
+                Back to Gallery
+            </a>
+        </div>
+        <h1>Get Your Photos</h1>
+        <p>You've selected {{ selected_photos|length }} photos</p>
+    </div>
+
+    <div class="steps-indicator">
+        <div class="step completed">
+            <div class="step-number">1</div>
+            <div class="step-label">Select Photos</div>
+        </div>
+        <div class="step active">
+            <div class="step-number">2</div>
+            <div class="step-label">Choose Delivery Method</div>
+        </div>
+        <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-label">Get Your Photos</div>
+        </div>
+    </div>
+
+    <div class="preview-card">
+        <div class="preview-header">
+            <div class="preview-title">Selected Photos Preview</div>
+            <div class="preview-count">{{ selected_photos|length }} photos selected</div>
+        </div>
+        <div class="gallery">
+            {% for photo in selected_photos %}
+                <div class="photo-item">
+                    {% if photo.file_type == 'image' %}
+                        {% if photo.thumbnail_filename %}
+                            <img src="{{ url_for('static', filename='uploads/thumbnails/' + photo.thumbnail_filename) }}" alt="{{ photo.original_filename }}">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='uploads/' + photo.filename) }}" alt="{{ photo.original_filename }}">
+                        {% endif %}
+                    {% else %}
+                        <div class="video-indicator">Video</div>
+                        {% if photo.thumbnail_filename %}
+                            <!-- Video with thumbnail -->
+                            <img src="{{ url_for('static', filename='uploads/thumbnails/' + photo.thumbnail_filename) }}" 
+                                 alt="{{ photo.original_filename }}"
+                                 data-video-src="{{ url_for('static', filename='uploads/' + photo.filename) }}"
+                                 data-type="video"
+                                 data-media-id="{{ photo.id }}"
+                                 onerror="this.onerror=null; this.parentNode.innerHTML='<div class=\'video-thumbnail-placeholder\'><i class=\'fas fa-video\'></i></div>';">
+                        {% else %}
+                            <!-- Video without thumbnail, show placeholder -->
+                            <div class="video-thumbnail-placeholder">
+                                <i class="fas fa-video"></i>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="form-container">
+        <form method="post" onsubmit="return validateForm()">
+            {{ form.hidden_tag() }}
+            
+            <div class="form-section">
+                <div class="section-header">
+                    <div class="section-number">1</div>
+                    <h2 class="section-title">Choose Delivery Method</h2>
+                </div>
+            <div class="form-group">
+                    <div class="delivery-buttons">
+                        {% for subfield in form.delivery_method %}
+                        <label class="delivery-button" {% if subfield.data != 'download' %}style="display: none;"{% endif %}>
+                            {{ subfield }}
+                            <div class="delivery-button-content">
+                                <div class="delivery-button-icon">
+                                    {% if subfield.data == 'download' %}
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                        <path d="M12 15L8 11H11V3H13V11H16L12 15Z" fill="currentColor"/>
+                                        <path d="M20 18H4V11H2V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V11H20V18Z" fill="currentColor"/>
+                                    </svg>
+                                    {% elif subfield.data == 'link' %}
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                        <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" fill="currentColor"/>
+                                    </svg>
+                                    {% elif subfield.data == 'google_drive' %}
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                        <path d="M19.7 8.3l-4-7H8.3l4 7h7.4zM8.5 8.3L4.5 1.3H3.3c-.8 0-1.6.4-2 1.1-.5.7-.5 1.6-.2 2.4L5.3 12l3.2-3.7zM16 10H6.4l-4.5 8c-.4.7-.4 1.6 0 2.3.4.7 1.2 1.1 2 1.1h16.4c.8 0 1.6-.4 2-1.1.4-.7.4-1.6 0-2.3L18 10h-2z" fill="currentColor"/>
+                                    </svg>
+                                    {% else %}
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                        <path d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4 20 4ZM20 18H4V8L12 13L20 8V18ZM12 11L4 6H20L12 11Z" fill="currentColor"/>
+                                    </svg>
+                                    {% endif %}
+                                </div>
+                                <div class="delivery-button-text">
+                                    <span class="delivery-button-title">
+                                        {% if subfield.data == 'download' %}
+                                            {% if selected_photos|length == 1 %}
+                                            Download this Photo
+                                            {% else %}
+                                            Download as ZIP
+                                            {% endif %}
+                                        {% else %}
+                                            {{ subfield.label.text }}
+                                        {% endif %}
+                                    </span>
+                                    <span class="delivery-button-desc">
+                                        {% if subfield.data == 'download' %}
+                                        Get your photos immediately
+                                        {% elif subfield.data == 'link' %}
+                                        Share photos with anyone
+                                        {% elif subfield.data == 'google_drive' %}
+                                        Access photos in Google Drive
+                                        {% else %}
+                                        Receive photos in your inbox
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </label>
+                {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <div id="emailGroup" class="form-section">
+                <div class="section-header">
+                    <div class="section-number">2</div>
+                    <h2 class="section-title">Enter Your Email</h2>
+                </div>
+            <div class="form-group">
+                    {{ form.email(class="form-control email-input", placeholder="Enter your email address") }}
+                    {% for error in form.email.errors %}
+                    <span class="error">{{ error }}</span>
+                    {% endfor %}
+                    <div id="emailError" class="error">
+                        Please enter a valid email address
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <div class="form-group">
+                    {{ form.submit(class="btn btn-primary action-button", id="submitBtn") }}
+                </div>
+                
+                <p class="form-note">
+                    By submitting, you agree to receive your selected photos via your chosen method.
+                </p>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<style>
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+
+.loading-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+    margin-bottom: 15px;
+}
+
+.loading-text {
+    color: #fff;
+    font-size: 18px;
+    font-weight: 500;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* 按钮加载状态 */
+.button-loading {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* 输入错误状态 */
+.input-error {
+    border-color: #ff4d4d !important;
+    box-shadow: 0 0 0 2px rgba(255, 77, 77, 0.25) !important;
+    animation: shake 0.5s;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* Responsive layout and interactive design variables */
+:root {
+    --color-background: #2a2a2a;
+    --color-background-light: #333333;
+    --color-background-hover: #383838;
+    --color-text: #ffffff;
+    --color-text-light: #a0a0a0;
+    --color-border: #404040;
+    --color-primary: #4a90e2;
+    --color-primary-light: rgba(74, 144, 226, 0.1);
+    --color-primary-hover: #357abd;
+    --color-error: #dc3545;
+    --color-warning: #ffc107;
+    --spacing-xs: 8px;
+    --spacing-sm: 16px;
+    --spacing-md: 24px;
+    --spacing-lg: 32px;
+    --spacing-xl: 48px;
+    --border-radius-sm: 8px;
+    --border-radius-md: 12px;
+    --border-radius-lg: 16px;
+    --transition-fast: 0.2s ease;
+    --transition-normal: 0.3s ease;
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 8px rgba(0,0,0,0.12);
+}
+
+/* Page layout */
+.client-view {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--spacing-lg) var(--spacing-sm);
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.page-header h1 {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+    margin: 20px 0 10px;
+    color: var(--color-text);
+}
+
+.page-header p {
+    color: var(--color-text-light);
+    font-size: clamp(0.9rem, 3vw, 1rem);
+}
+
+.back-button-container {
+    margin-bottom: var(--spacing-md);
+}
+
+/* Steps indicator styles */
+.steps-indicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: clamp(16px, 4vw, 40px);
+    margin: var(--spacing-xl) auto;
+    padding: 0 var(--spacing-sm);
+    max-width: 800px;
+    overflow-x: auto;
+    scrollbar-width: none; /* Firefox */
+    padding-top: 10px; /* Add top padding for enlarged elements */
+    padding-bottom: 10px; /* Maintain symmetry */
+}
+
+.steps-indicator::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Edge */
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    flex: 1;
+    min-width: 80px;
+    padding-top: 5px; /* Add extra top padding */
+    padding-bottom: 5px; /* Maintain symmetry */
+}
+
+.step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 20px;
+    right: calc(-1 * clamp(16px, 4vw, 40px) / 2);
+    width: clamp(16px, 4vw, 40px);
+    height: 2px;
+    background: var(--color-border);
+    transition: background var(--transition-normal);
+}
+
+.step.completed:not(:last-child)::after {
+    background: var(--color-primary);
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--color-background-light);
+    border: 2px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    margin-bottom: var(--spacing-xs);
+    transition: all var(--transition-normal);
+    color: var(--color-text-light);
+    position: relative;
+    z-index: 1;
+}
+
+.step.active .step-number {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 0 0 4px var(--color-primary-light);
+}
+
+.step.completed .step-number {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+}
+
+.step-label {
+    font-size: 0.9em;
+    color: var(--color-text-light);
+    text-align: center;
+    transition: all var(--transition-normal);
+    white-space: nowrap;
+}
+
+.step.active .step-label,
+.step.completed .step-label {
+    color: var(--color-text);
+    font-weight: 500;
+}
+
+/* Preview card styles */
+.preview-card {
+    background: var(--color-background-light);
+    border-radius: var(--border-radius-md);
+    margin: var(--spacing-lg) auto;
+    max-width: 800px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.preview-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.preview-header {
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.preview-title {
+    font-size: 1.1em;
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.preview-count {
+    color: var(--color-text-light);
+}
+
+.gallery {
+    padding: var(--spacing-md);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr));
+    gap: var(--spacing-sm);
+}
+
+.photo-item {
+    aspect-ratio: 1/1;
+    border-radius: var(--border-radius-sm);
+    overflow: hidden;
+    transition: transform var(--transition-fast);
+    position: relative;
+}
+
+.photo-item:hover {
+    transform: scale(1.05);
+    z-index: 1;
+}
+
+.photo-item img, 
+.photo-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Video thumbnail styles */
+.video-indicator {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    z-index: 2;
+}
+
+.video-thumbnail-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-background);
+    color: var(--color-text-light);
+}
+
+.video-thumbnail-placeholder i {
+    font-size: 2.5rem;
+}
+
+/* Video thumbnail placeholder enhanced styles */
+.video-thumbnail-placeholder::after {
+    content: "Video Preview";
+    display: block;
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 0.9em;
+    color: var(--color-text-light);
+}
+
+/* Form container */
+.form-container {
+    max-width: 500px;
+    margin: var(--spacing-lg) auto;
+}
+
+/* Form sections */
+.form-section {
+    background: var(--color-background-light);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-normal);
+    border: 1px solid var(--color-border);
+}
+
+.form-section:hover {
+    box-shadow: var(--shadow-md);
+}
+
+#emailGroup {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    border-color: transparent;
+    transition: all var(--transition-normal);
+    pointer-events: none;
+}
+
+#emailGroup.visible {
+    max-height: 200px;
+    opacity: 1;
+    margin-bottom: var(--spacing-md);
+    padding: var(--spacing-md);
+    border-color: var(--color-border);
+    pointer-events: all;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.section-number {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9em;
+    margin-right: var(--spacing-sm);
+}
+
+.section-title {
+    margin: 0;
+    font-size: 1.1em;
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.form-group {
+    margin-bottom: var(--spacing-md);
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+/* Input styles */
+.email-input {
+    width: 100%;
+    padding: 12px;
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--color-border);
+    background: var(--color-background);
+    color: var(--color-text);
+    font-size: 1rem;
+    transition: all var(--transition-fast);
+}
+
+.email-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+.email-input.input-warning {
+    border-color: var(--color-warning);
+    background-color: rgba(255, 193, 7, 0.05);
+}
+
+.email-input.input-error {
+    border-color: var(--color-error);
+    background-color: rgba(220, 53, 69, 0.05);
+}
+
+/* Error message */
+.error {
+    display: none;
+    color: var(--color-error);
+    margin-top: var(--spacing-xs);
+    font-size: 0.9em;
+    animation: fadeIn var(--transition-fast);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Button styles */
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    border-radius: var(--border-radius-sm);
+    color: var(--color-text-light);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all var(--transition-fast);
+    background: var(--color-background-light);
+    border: 1px solid var(--color-border);
+}
+
+.back-button:hover {
+    color: var(--color-text);
+    background: var(--color-background-hover);
+    border-color: var(--color-text-light);
+    transform: translateY(-2px);
+}
+
+.action-button {
+    width: 100%;
+    padding: 14px;
+    font-size: 1.1em;
+    font-weight: 500;
+    border-radius: var(--border-radius-sm);
+    background: var(--color-primary);
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.action-button:hover,
+.action-button:focus {
+    background: var(--color-primary-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.action-button:active {
+    transform: translateY(0);
+}
+
+.action-button:disabled {
+    opacity: 0.7;
+    transform: none;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+.action-button.button-loading {
+    color: transparent;
+}
+
+.action-button.button-loading::before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 50%;
+    left: 50%;
+    margin-top: -10px;
+    margin-left: -10px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.action-button.button-change {
+    animation: button-pulse 0.3s ease;
+}
+
+@keyframes button-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Form note */
+.form-note {
+    margin-top: var(--spacing-md);
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+    text-align: center;
+}
+
+/* Delivery method buttons styles */
+.delivery-buttons {
+    display: grid;
+    gap: var(--spacing-sm);
+}
+
+.delivery-button {
+    position: relative;
+    display: block;
+    cursor: pointer;
+    border: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    transition: transform var(--transition-fast);
+}
+
+.delivery-button:active {
+    transform: scale(0.98);
+}
+
+.delivery-button input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    cursor: pointer;
+}
+
+.delivery-button-content {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    background: var(--color-background);
+    border-radius: var(--border-radius-sm);
+    transition: all var(--transition-fast);
+    border: 2px solid transparent;
+}
+
+.delivery-button:hover .delivery-button-content {
+    background: var(--color-background-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.delivery-button.active .delivery-button-content {
+    background: var(--color-primary);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: var(--shadow-md);
+}
+
+.delivery-button-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    margin-right: 16px;
+    border-radius: var(--border-radius-sm);
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--color-text);
+    transition: all var(--transition-fast);
+}
+
+.delivery-button.active .delivery-button-icon {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.delivery-button-text {
+    flex: 1;
+}
+
+.delivery-button-title {
+    display: block;
+    font-size: 1.1em;
+    font-weight: 500;
+    color: var(--color-text);
+    margin-bottom: 4px;
+}
+
+.delivery-button-desc {
+    display: block;
+    font-size: 0.9em;
+    color: var(--color-text-light);
+}
+
+.delivery-button.active .delivery-button-title,
+.delivery-button.active .delivery-button-desc {
+    color: white;
+}
+
+/* Responsive layout adjustments */
+@media (max-width: 768px) {
+    .form-section {
+        padding: var(--spacing-sm);
+    }
+    
+    .delivery-button-content {
+        padding: 20px 16px;
+    }
+    
+    .photo-item {
+        aspect-ratio: 1/1;
+    }
+    
+    .gallery {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 10px;
+        padding: 15px;
+    }
+    
+    .preview-header {
+        padding: 15px;
+    }
+    
+    .preview-title {
+        font-size: 1em;
+    }
+    
+    .preview-count {
+        font-size: 0.9em;
+    }
+    
+    .step-label {
+        font-size: 0.8em;
+    }
+    
+    .section-title {
+        font-size: 1em;
+    }
+}
+
+/* Touch device optimization */
+@media (hover: none) {
+    .delivery-button-content {
+        padding: 20px 16px;  /* Larger touch area */
+    }
+    
+    .back-button {
+        padding: 12px 20px;  /* Larger touch area */
+    }
+    
+    .action-button {
+        padding: 16px;       /* Larger touch area */
+    }
+}
+</style>
+
+<script>
+// 添加全页面加载指示器
+const loadingOverlay = document.createElement('div');
+loadingOverlay.className = 'loading-overlay';
+loadingOverlay.innerHTML = `
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Processing...</div>
+`;
+document.body.appendChild(loadingOverlay);
+
+// Detect device type
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+const hasTouchScreen = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+const isTouchDevice = isMobile || hasTouchScreen;
+
+// 显示加载状态的函数
+function showLoading() {
+    loadingOverlay.classList.add('active');
+    
+    // 禁用表单按钮
+    const submitBtn = document.getElementById('submitBtn');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.classList.add('button-loading');
+    }
+}
+
+// 隐藏加载状态的函数
+function hideLoading() {
+    loadingOverlay.classList.remove('active');
+    
+    // 启用表单按钮
+    const submitBtn = document.getElementById('submitBtn');
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('button-loading');
+    }
+}
+
+// 表单验证和提交
+function validateForm() {
+    const deliveryMethod = document.querySelector('input[name="delivery_method"]:checked');
+    if (!deliveryMethod) {
+        alert('Please select a delivery method');
+        return false;
+    }
+
+    // 如果选择了邮件发送方式，验证邮箱
+    if (deliveryMethod.value === 'email') {
+        const email = document.querySelector('input[name="email"]').value;
+        const emailError = document.getElementById('emailError');
+        
+        // 简单的邮箱验证
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            emailError.style.display = 'block';
+            
+            // 设备反馈
+            const emailInput = document.querySelector('input[name="email"]');
+            emailInput.classList.add('input-error');
+            
+            // 触觉反馈（如果支持）
+            if (window.navigator && window.navigator.vibrate) {
+                window.navigator.vibrate(100);
+            }
+            
+            // 滚动到错误字段
+            emailInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            return false;
+        }
+    }
+    
+    // 显示加载状态
+    showLoading();
+    
+    // 根据不同交付方式设置按钮文字
+    const button = document.getElementById('submitBtn');
+    button.setAttribute('data-text', button.value);
+    
+    if (deliveryMethod.value === 'download') {
+        button.value = 'Preparing Download...';
+    } else if (deliveryMethod.value === 'link' || deliveryMethod.value === 'google_drive') {
+        button.value = 'Generating Link...';
+    } else {
+        button.value = 'Processing...';
+    }
+    
+    // 允许表单正常提交 - 返回true
+    return true;
+}
+
+// Show/hide email input based on delivery method
+document.querySelectorAll('input[name="delivery_method"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const emailGroup = document.getElementById('emailGroup');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        if (this.value === 'email') {
+            // Show email input
+            emailGroup.classList.add('visible');
+            submitBtn.value = 'Send Me Photos';
+        } else {
+            // Hide email input
+            emailGroup.classList.remove('visible');
+            if (this.value === 'download') {
+                submitBtn.value = 'Download Photos';
+            } else if (this.value === 'link') {
+                submitBtn.value = 'Generate Link';
+            } else if (this.value === 'google_drive') {
+                submitBtn.value = 'Create Google Drive Collection';
+            }
+        }
+        
+        // Add subtle animation to button
+        submitBtn.classList.add('button-change');
+        setTimeout(() => {
+            submitBtn.classList.remove('button-change');
+        }, 300);
+    });
+});
+
+// Real-time email validation
+document.addEventListener('DOMContentLoaded', function() {
+    const emailInput = document.querySelector('input[name="email"]');
+    const emailError = document.getElementById('emailError');
+    
+    if (emailInput) {
+        emailInput.addEventListener('input', function() {
+            emailInput.classList.remove('input-error');
+            emailError.style.display = 'none';
+            
+            if (this.value && !this.value.includes('@')) {
+                // Show subtle visual hint
+                emailInput.classList.add('input-warning');
+            } else {
+                emailInput.classList.remove('input-warning');
+            }
+        });
+        
+        // Validate on blur
+        emailInput.addEventListener('blur', function() {
+            if (this.value && !this.value.includes('@')) {
+                emailError.style.display = 'block';
+                emailInput.classList.add('input-error');
+            }
+        });
+    }
+    
+    // Initialize form state
+    const deliveryMethod = document.querySelector('input[name="delivery_method"]:checked').value;
+    const emailGroup = document.getElementById('emailGroup');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    if (deliveryMethod === 'email') {
+        // If email is initially selected, show email input
+        emailGroup.classList.add('visible');
+        submitBtn.value = 'Send Me Photos';
+    } else {
+        // Otherwise hide email input
+        submitBtn.value = 'Download Photos';
+    }
+    
+    // Optimize button touch areas for touch devices
+    if (isTouchDevice) {
+        document.querySelectorAll('.delivery-button-content').forEach(btn => {
+            btn.style.padding = '20px 16px';
+        });
+    }
+});
+
+// Add button styles
+document.querySelectorAll('.delivery-button').forEach(button => {
+    button.addEventListener('click', function() {
+        // Visual feedback
+        const allButtons = document.querySelectorAll('.delivery-button');
+        allButtons.forEach(btn => {
+            btn.classList.remove('active');
+            btn.style.transform = '';
+        });
+        
+        this.classList.add('active');
+        
+        // Subtle animation effect
+        this.style.transform = 'scale(1.02)';
+        setTimeout(() => {
+            this.style.transform = '';
+        }, 300);
+        
+        // Haptic feedback (if supported)
+        if (window.navigator && window.navigator.vibrate) {
+            window.navigator.vibrate(50);
+        }
+    });
+    
+    // Initialize selected state
+    const radio = button.querySelector('input[type="radio"]');
+    if (radio.checked) {
+        button.classList.add('active');
+        }
+    });
+</script>
+{% endblock %} 
