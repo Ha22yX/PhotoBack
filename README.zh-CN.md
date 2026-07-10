@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="README.md">English</a> &middot;
-  <a href="https://photoback.rosebeg.com/view/8b6ab9d9">访客测试页面</a> &middot;
+  <a href="https://photoback.rosebeg.com/view/8b6ab9d9">访客演示页面</a> &middot;
   <a href="#项目预览">项目预览</a> &middot;
   <a href="#快速开始">快速开始</a> &middot;
   <a href="#google-drive-备份机制">Google Drive 备份</a>

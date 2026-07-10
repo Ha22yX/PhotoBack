@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="README.zh-CN.md">Chinese</a> &middot;
-  <a href="https://photoback.rosebeg.com/view/8b6ab9d9">Live visitor route</a> &middot;
+  <a href="https://photoback.rosebeg.com/view/8b6ab9d9">Visitor Demo Page</a> &middot;
   <a href="#product-preview">Preview</a> &middot;
   <a href="#quickstart">Quickstart</a> &middot;
   <a href="#how-google-drive-backup-works">Google Drive Backup</a>
