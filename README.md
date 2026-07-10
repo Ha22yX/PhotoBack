@@ -59,6 +59,10 @@ PhotoBack was built around a real photographer workflow: after an event, create 
 
 The project is intentionally narrow. It is not a generic cloud album. It is a self-hosted delivery desk for photographers who want control over their own website, local files, client links, and optional cloud backup.
 
+## Project History
+
+PhotoBack was originally built for my own photography workflow and has been used in private deployments for the past two to three years. This repository is the cleaned public release, with runtime photos, database files, OAuth tokens, SMTP secrets, and local deployment config removed before open-sourcing.
+
 ## Features
 
 - Project-based galleries with unique access links such as `/view/<access_link>`.
